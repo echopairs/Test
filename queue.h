@@ -1,20 +1,23 @@
 /*********************************************************************
-  Copyright (C), 2005-2013, HangZhou RED HEAT Tech. Co., Ltd.
-
+  Copyright (C), 1990-2016, HangZhou RED HEAT Tech. Co., Ltd.
   FileName: queue.h
   Author  : pairs & 736418319@qq.com
   Version : 1.0
   Date    : 2016/04/24
   Description:
-
   Function List:
-
   History:
       <author>    <time>    <version>    <desc>
         pairs     16/04/24      1.0     build this moudle
 *********************************************************************/
 
 // four status to queue
+#include <vector>
+#include <set>
+#include <thread>
+#include <stddef.h>
+#include <mutex>
+#include <map>
 using TickTaskQueueEventType = enum TickTaskQueueEventType_ 
 {
     TickTaskQueueEventEnterLowLevel = 0,
@@ -30,8 +33,8 @@ template<typename T>
 class TickTaskQueue
 {
     public:
-      TickTaskQueue(size_t lowelLevel = 0, size_t highLevel = (size_t)(-1)):
-                    lowelLevel_(lowelLevel),
+      TickTaskQueue(size_t lowLevel = 0, size_t highLevel = (size_t)(-1)):
+                    lowLevel_(lowLevel),
                     highLevel_(highLevel),
                     data_(compare)
                     {}
@@ -52,13 +55,13 @@ class TickTaskQueue
 
       void setLowLevel(T lowelLevel)
       {
-          lowelLevel_ = lowelLevel;
+          lowLevel_ = lowelLevel;
       }
 
       // get lowlevel 
       size_t getLowLevel() const
       {
-          return lowelLevel_;
+          return lowLevel_;
       }
 
       // pop count element T out 
@@ -67,7 +70,7 @@ class TickTaskQueue
           size_t  sizeBefore = size();
           size_t  retSize = (sizeBefore > count ? count:sizeBefore);
 
-          while(retsize--)
+          while(retSize--)
           {
               auto it = data_.begin();
               if(out)
@@ -78,7 +81,7 @@ class TickTaskQueue
           }
 
           // after pop
-          if ((sizeBefore > lowLevel_) && (size() < lowelLevel_))
+          if ((sizeBefore > lowLevel_) && (size() < lowLevel_))
           {
               eventCallBack(TickTaskQueueEventEnterLowLevel);
           }
@@ -92,9 +95,9 @@ class TickTaskQueue
       // pop element out
       void pop(T* out)
       {
+          size_t sizeBefore = size();
           if (!data_.empty())
           {
-              size_t sizeBefore = size();
               if (out)
               {
                  *out = *(data_.begin());
@@ -105,7 +108,7 @@ class TickTaskQueue
           // after pop
           if (size() == lowLevel_)
           {
-              eventCallBack(TickTaskQueueEnterLowLevel);
+              eventCallBack(TickTaskQueueEventEnterLowLevel);
           }
 
           if (sizeBefore > 0 && size() == 0)
@@ -164,7 +167,7 @@ class TickTaskQueue
       }
       size_t size()
       {
-          return data_size();
+          return data_.size();
       }
       void clear()
       {
@@ -219,8 +222,6 @@ class TickTaskQueue
 };
 
 
-
-
 /*
     1. set<int>s0;
     2. set<int , greater<int>>s1; // default less<int>
@@ -239,14 +240,3 @@ class TickTaskQueue
        bool(*fn_pt)(int, int) = fncmp;
        set<int, bool(*)(int, int)> s3(fn_pt);
 */
-
-
-
-
-
-
-
-
-
-
-
